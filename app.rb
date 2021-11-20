@@ -2,7 +2,10 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'sinatra/cookies'
 require 'pg'
+require 'digest'
 require 'pry'
+
+enable :sessions
 
 # データベース接続設定
 agent = PG::connect(
@@ -12,33 +15,44 @@ agent = PG::connect(
   :dbname => ENV.fetch("DB_NAME" )
 )
 
-# 新規登録画面
+# 新規登録
 # ==========================>>>
 get '/signup' do
   return erb :signup
 end
 
 post '/signup' do
+  # ユーザー情報取得
+  name = params[:name]
+  email = params[:email]
+  password = params[:password]
 
+  # ユーザー情報登録
+  agent.exec_params("INSERT INTO users (name, email, password) VALUES ($1, $2, $3)", [name, email, password])
+
+  # ユーザー取得
+  user = agent.exec_params("SELECT * FROM users WHERE email = $1 AND password = $2", [email, password]).to_a.first
+
+  session[:user] = user
+  return redirect '/posts'
 end
 # <<<==========================
 
-# 投稿画面
+# 投稿
 # ==========================>>>
   get '/posts' do
-    # データの参照
+    # 投稿データの参照
     @posts = agent.exec_params("SELECT * FROM posts ORDER BY created_at DESC").to_a
     return erb :posts
   end
 
   post '/posts' do
-    # 入力データの取得
+    # 投稿入力データの取得
     name = params[:name]
     content = params[:content]
 
-    # データの登録
+    # 投稿データの登録
     agent.exec_params("INSERT INTO posts (name, content) VALUES ($1, $2)", [name, content])
-    # binding.pry
     return redirect '/posts'
   end
 # <<<==========================
