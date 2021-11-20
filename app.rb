@@ -16,5 +16,14 @@ get '/posts' do
 end
 
 post '/posts' do
-  return erb :posts
+  name = params[:name]
+  content = params[:content]
+
+  agent.exec_params("INSERT INTO posts (name, content) VALUES ($1, $2)", [name, content])
+
+  @post = agent.exec_params("SELECT * FROM posts WHERE name = $1 AND content = $2", [name, content]).to_a.first
+
+  return redirect '/posts'
 end
+
+# binding.pry
