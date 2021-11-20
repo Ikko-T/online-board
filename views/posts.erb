@@ -5,7 +5,15 @@
   </div>
   <div>
     <p>投稿内容</p>
-    <textarea name="content" rows="5"></textarea>
+    <textarea name="content" cols=50 rows="10"></textarea>
   </div>
   <input type="submit" value="投稿">
 </form>
+
+<% @posts.each do |post| %>
+  <h2><%= post['name']%></h2>
+  <p><%= post['content']%></p>
+  <p><%= post['created_at']%></p>
+<% end %>
+
+  <%#binding.pry%>
