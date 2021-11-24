@@ -64,9 +64,18 @@ post '/login' do
 end
 # <<<==========================
 
+# ログアウト
+# ==========================>>>
+delete '/logout' do
+  session[:user] = nil
+  redirect '/login'
+end
+# <<<==========================
+
 # 投稿
 # ==========================>>>
 get '/posts' do
+  @name = session[:user]['name']
   # 投稿データの参照
   @posts = agent.exec_params("SELECT * FROM posts ORDER BY created_at DESC").to_a
   return erb :posts
