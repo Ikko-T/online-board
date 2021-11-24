@@ -38,21 +38,47 @@ post '/signup' do
 end
 # <<<==========================
 
-# 投稿
+# ログイン
 # ==========================>>>
-  get '/posts' do
-    # 投稿データの参照
-    @posts = agent.exec_params("SELECT * FROM posts ORDER BY created_at DESC").to_a
-    return erb :posts
-  end
+get '/login' do
+  return erb :login
+end
 
-  post '/posts' do
-    # 投稿入力データの取得
-    name = params[:name]
-    content = params[:content]
+post '/login' do
+  email = params[:email]
+  password = params[:password]
 
-    # 投稿データの登録
-    agent.exec_params("INSERT INTO posts (name, content) VALUES ($1, $2)", [name, content])
+  # ユーザー取得
+  user = agent.exec_params("SELECT * FROM users WHERE email = $1 AND password = $2", [email, password]).to_a.first
+
+  # ユーザー有無の確認
+  if user.nil?
+    # （ユーザー無しの場合）ログイン画面へ遷移
+    return erb :login
+  else
+    # （ユーザー有りの場合）投稿画面へ遷移
+    session[:user] = user
     return redirect '/posts'
   end
+
+end
+# <<<==========================
+
+# 投稿
+# ==========================>>>
+get '/posts' do
+  # 投稿データの参照
+  @posts = agent.exec_params("SELECT * FROM posts ORDER BY created_at DESC").to_a
+  return erb :posts
+end
+
+post '/posts' do
+  # 投稿入力データの取得
+  name = params[:name]
+  content = params[:content]
+
+  # 投稿データの登録
+  agent.exec_params("INSERT INTO posts (name, content) VALUES ($1, $2)", [name, content])
+  return redirect '/posts'
+end
 # <<<==========================
